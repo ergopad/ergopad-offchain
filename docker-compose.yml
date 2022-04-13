@@ -1,0 +1,14 @@
+version: '3'
+services:
+  staking:
+      networks:
+        - ergo-offchain-execution_net
+      build:
+        context: .
+        dockerfile: ./staking/Dockerfile
+      volumes:
+        - ./:/code
+      entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./staking" -- python -m staking
+networks:
+  ergo-offchain-execution_net:
+    external: true
