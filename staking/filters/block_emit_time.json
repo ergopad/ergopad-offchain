@@ -1,0 +1,14 @@
+{
+    "name": "io.ergopad.staking.emit_time",
+    "filterType": "block",
+    "repeats": -1,
+    "topics": [
+        "io.ergopad.staking.emit_time"
+    ],
+    "messageTemplate": "%block%",
+    "filterTree": {
+        "nodeType": "gt",
+        "fieldName": "timestamp",
+        "comparisonValue": 0
+    }
+}

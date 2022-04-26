@@ -1,0 +1,6 @@
+{
+    "python.analysis.stubPath": "/home/luivatra/ergo/ergopad-offchain/venv/lib/python3.9/site-packages/ergo_python_appkit/typings",
+    "python.analysis.extraPaths": [
+        "/home/luivatra/ergo/ergopad-offchain/venv/lib/python3.9/site-packages/ergo_python_appkit/typings"
+    ]
+}
