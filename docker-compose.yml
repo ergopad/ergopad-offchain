@@ -9,6 +9,15 @@ services:
       volumes:
         - ./:/code
       entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./staking" -- python -m staking
+  vesting:
+      networks:
+        - ergo-offchain-execution_net
+      build:
+        context: .
+        dockerfile: ./vesting/Dockerfile
+      volumes:
+        - ./:/code
+      entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./vesting" -- python -m vesting
 networks:
   ergo-offchain-execution_net:
     external: true

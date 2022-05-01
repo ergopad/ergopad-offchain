@@ -1,0 +1,14 @@
+{
+    "name": "io.ergopad.vesting.refund",
+    "filterType": "tx",
+    "repeats": -1,
+    "topics": [
+        "io.ergopad.vesting.refund"
+    ],
+    "messageTemplate": "%tx%",
+    "filterTree": {
+        "nodeType": "equals",
+        "fieldName": "inputs.0.address",
+        "comparisonValue": "7odsYN5KsYMF5MC4TcHHB8FVCqMsUqg3GLNJDVhQRx4ebsbixF4vQcQ42sDGMrsekZHNBMb1LzoUGh9CNtoLiANg1ZyL6kmZAaV8vt7dmnDF69sbXAfo4SPQrn1Q5NuxeBtKsasC79WRp1PPJaUs3HNvEvTv7oC2mNfQt2YsGEcQwDRd6icCR65PDBAoCeKPdzKJ6FvYytbiLfCTueNfLZzmepevp9KL4fdEnJZ3aoXsPRf4QCdUMo39tWs8Ds4rEcNhPwh2HqC3j4iNcCPkX3wLeP9GALm4ARQoNgfahGpgCk9MbXkDR4Gjka5CbJwrdLDTj3wk1bXo5Zbfm4kTSHLhsvdkvxFDvp4EXbuVDN6BPepPmRJizfo5KsWRfunaFCDokPkyk23vLYyT5ZjLZvmyHZr6JvjctZN4A6qKcp8u6MuWLhPxMdmti1AH6Qp5hFEhtmLvc7G4nRanYFgtYhENNXVyWioPxyrdUa31BBrf521FDaFC4S"
+    }
+}

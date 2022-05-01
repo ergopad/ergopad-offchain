@@ -1,0 +1,14 @@
+{
+    "name": "io.ergopad.vesting.oracle",
+    "filterType": "tx",
+    "repeats": -1,
+    "topics": [
+        "io.ergopad.vesting.oracle"
+    ],
+    "messageTemplate": "%tx%",
+    "filterTree": {
+        "nodeType": "equals",
+        "fieldName": "outputs.0.assets.0.tokenId",
+        "comparisonValue": "011d3364de07e5a26f0c4eef0852cddb387039a921b7154ef3cab22c6eda887f"
+    }
+}
