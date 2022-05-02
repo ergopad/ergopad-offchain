@@ -10,6 +10,7 @@ services:
         - ./:/code
       entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./staking" -- python -m staking
   vesting:
+      env_file: .env
       networks:
         - ergo-offchain-execution_net
       build:

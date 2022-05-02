@@ -273,7 +273,7 @@ class StakingState:
         dustBoxes = []
         dustTotal = 0
         for box in list(self._incentiveBoxes.values()) + self.mempool.getUTXOsByTree(incentiveTree):
-            if box["boxId"] not in dustBoxes and box["value"] < 100000000 and not self.mempool.isSpent(box["boxId"]):
+            if box["boxId"] not in dustBoxes and box["value"] < 10000000 and not self.mempool.isSpent(box["boxId"]):
                 dustBoxes.append(box["boxId"])
                 dustTotal += box["value"]
 

@@ -1,9 +1,12 @@
 import asyncio
 import json
+import os
 from pydoc import text
 import sys
 import time
+from urllib.parse import quote
 from ergo_python_appkit.appkit import ErgoAppKit
+from sigmastate.Values import ErgoTree
 import logging
 import requests
 from kafka import KafkaConsumer, KafkaProducer
@@ -20,11 +23,15 @@ logger = logging.getLogger('urllib3.connectionpool')
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.WARN)
 
+bearerToken = {
+    'token': None,
+    'expired': 0
+}
 
 producer: KafkaProducer = None
 
 proxyAddress = "SA7vqpDWt8BYmP6PJxRe3TgV89iu6dhKr1sk622mW8PfxZ5WrcBZ4En3LwTmKJMvb2Cfzg4HPeK6wJ61aYKnqcFwkNh1bqPkk74KhespAF4Ga7YM3TNi33H8CtDLZXC69F8EyrMcsSex5taUYad9rBZm2kXZc1aLFEh9795wBsvXzoxPpALq82bBeVBij89gkaQ6Ny4c7QfAguqRzE8BkefSh75aGmcq7ZYtcRCuy5BMzVnWJBT4mrAwbDJBYxYdaSQ8zAvA7PA65zQvEVquLqamZg1PmApFL3aqbhjoF5Ppr2NHJeBdtgb9vMc9XDZy4Aag3V6EqujRoZ29WUQRTDp32iBNhEBTdE8PdSfpw5pZMzmSCGtCQ5eh5dXC4ahG8QL2D4NvXP78Qyu2FG6xyxo823G93Q2BqpcSesQvnz3bYrthVDMdBiiLqgwfsiXoTNg4KYk3HBftEzbfPnhTXxgrm8CcRWodKhS9tiA75WotZZcTACcrRZny7ZYETfwwSYTVasg7DxnSpZN4VPDExPigm69j8D8tp3hrP9BBESLWJF6EspxfWd4Nbx14eou4dQ4TRsxJUG5noCoXCeWEB4iyzuG9RyNTGD4h3gsAnnt8bR7FV6uWopmqHZ85Nyra5Zqh1aR6VQsbStaFL3WhSMS5pFBC5mhmuF7hdu3ZmsXsNgVEinGwM9jnukKghMBRNSpQbwqi4TZjja6fy93tUS9ggUShvRV7wE7YTKxq1RnnVQZTb6CCRvmycZFUuWehqXu7XekDUkWYPGC4KaagVbJRsXmKnqt36Re6V8NgHiTr4SjGzrj6gtbah1CfAVjVVA3Ggb1LnnXs4MFZpfmLnAGSm6PCb4Y3M53KygQ4pY7opZ1yxBAhB4tnJLa4KQj9uLy1V8mrK6xm8envCM92zhtPdAaxMZZmccQvSmMitSrVgWu419pT2yFTE6QpApZqysXtry3jRsmnEwLh72FfpE3xrfz4TBjM41tZm7RAEL8CwKfzs3qNsXCqvdLiBSdr6XTo9kTW6azMsGHLigqzg34FrkUGQW3S4aSnrapt1r7HmU9pGHukuuMcvgV4KrhPwV3chVetMLFEk4SoPavKueY4kX7KcAwEFsJcLtcXZq1kKBFS7kogsPNCnmxPj"
-contributionAddress = "7odsYN5KsYMF5MC4TcHHB8FVCqMsUqg3GLNJDVhQRx4ebsbixF4vQcQ42sDGMrsekZHNBMb1LzoUGh9CNtoLiANg1ZyL6kmZAaV8vt7dmnDF69sbXAfo4SPQrn1Q5NuxeBtKsasC79WRp1PPJaUs3HNvEvTv7oC2mNfQt2YsGEcQwDRd6icCR65PDBAoCeKPdzKJ6FvYytbiLfCTueNfLZzmepevp9KL4fdEnJZ3aoXsPRf4QCdUMo39tWs8Ds4rEcNhPwh2HqC3j4iNcCPkX3wLeP9GALm4ARQoNgfahGpgCk9MbXkDR4Gjka5CbJwrdLDTj3wk1bXo5Zbfm4kTSHLhsvdkvxFDvp4EXbuVDN6BPepPmRJizfo5KsWRfunaFCDokPkyk23vLYyT5ZjLZvmyHZr6JvjctZN4A6qKcp8u6MuWLhPxMdmti1AH6Qp5hFEhtmLvc7G4nRanYFgtYhENNXVyWioPxyrdUa31BBrf521FDaFC4S"
+contributionAddress = "3W5p3XzGKSAZJMS1zcdfBgewEwRcjGh2ZAFgDBytsmdHwaMh4nZn13vrn7gewyrHf73EPQ8wZxJjqeFPtyxPGXsKpTTSjn9ESsdEohf6MuotxALWgr6nmV1Dri17LSeQozyjsYs3bTCRukvAymTDGAK3m1GNZYivsaBxYT9tvf6CQEjiQEiGPf3Ju2zEsdUgfhxdcH9hiRpdqZjviih6d7VYqFXu662BzXWQrDsKTARCiUawMBWQgStMbFdPo8L1xdGUq8AFuCgz3p3VyGbpnAqVdWGk1BCyzgYzLKhmVyR6SNp8qeMzQLUassJgFLcnfgzFdEAFHRH679f2Aat2XhaGR3zFZEoVHX3kXQknVDeBgqFy6ERTx1R8yzNPb7s1YptUdhWQwxSnxaQkYRuLFn2Vd1jwBgMTDd4mC5bqUk2PzU3RtnYJuE3cWC1auK5qxuPXiFB2eRwNMyuHM7MSfacs6F3yXtC2PdTm2DSgUj7EzSDNfayh38J61AiTLnyY7RGGSmYH"
 ergUsdOracleNFT = "011d3364de07e5a26f0c4eef0852cddb387039a921b7154ef3cab22c6eda887f"
 
 async def getConfig():
@@ -90,7 +97,8 @@ async def currentVestingState(config) -> VestingState:
         for box in boxes:
             result.addProxyBox(box)
             result.roundInfo[box["assets"][0]["tokenId"]] = getRoundInfo(config,box["assets"][0]["tokenId"])
-            result.roundInfo[box["assets"][1]["tokenId"]] = getRoundInfo(config,box["assets"][1]["tokenId"])
+            if len(box["assets"]) > 1:
+                result.roundInfo[box["assets"][1]["tokenId"]] = getRoundInfo(config,box["assets"][1]["tokenId"])
         offset += limit
 
     offset = 0
@@ -119,6 +127,8 @@ async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, produce
             signedTxJson = json.loads(signedTx.toJson(False))
             txInfo = {'type': txType, 'tx': signedTxJson}
             producer.send('ergo.submit_tx',value=txInfo)
+            if txType.startswith('io.ergopad.vesting.refund'):
+                notifyUser("io.ergopad.vesting.refund",signedTxJson,vestingState,appKit)
             vestingState.newTx(json.loads(signedTx.toJson(False)))
         except Exception as e:
             logging.error(e)
@@ -127,6 +137,94 @@ def getRoundInfo(config, proxyNFT):
     try:
         tkn = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/tokens/{proxyNFT}')
         return tkn.json()
+    except Exception as e:
+        logging.error(e)
+
+def getBearerToken():
+    urlAuth = f'{os.getenv("ERGOPAD_API")}/auth/token'
+    username = os.getenv('ERGOPAD_USER')
+    password = os.getenv('ERGOPAD_PASS')
+    headers = {'accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'}
+    data = f"""grant_type=&username={quote(username)}&password={quote(password)}&scope=&client_id=&client_secret="""
+    
+    # auth user
+    res = requests.post(urlAuth, headers=headers, data=data)
+    logging.debug(res.text)
+    try:
+        bearerToken = res.json()['access_token']
+        return bearerToken
+    except Exception as e:
+        logging.error(e)
+
+def notifyUser(topic,tx, vestingState: VestingState, appKit: ErgoAppKit):
+    try:
+        if os.getenv("ERGOPAD_USER") is None:
+            return
+
+        currentTime = time.time()
+        txId = tx["id"]
+        if "globalIndex" in tx:
+            status = "confirmed"
+        else:
+            status = "submitted"
+        if topic == "io.ergopad.vesting.refund":
+            contributionBox = vestingState.getContributionBoxById(tx["inputs"][0]["boxId"])
+            address = appKit.tree2Address(appKit.treeFromBytes(bytes.fromhex(vestingState.getRegisterHex(contributionBox,"R5"))))
+            proxyNFT = vestingState.getRegisterHex(contributionBox,"R6")
+            roundInfo = vestingState.roundInfo[proxyNFT]
+            if tx["dataInputs"][0]["boxId"] == vestingState.oracle["boxId"]:
+                if status == "confirmed":
+                    additionalText = "Your refund has been confirmed. Please try contribute again"
+                else:
+                    additionalText = "Unfortunately the erg price has dropped too much for your contribution to be accepted and a refund is initiated"
+            else:
+                if status == "confirmed":
+                    additionalText = "Your refund has been confirmed, you can try again for a smaller amount if any tokens are left"
+                else:
+                    additionalText = f"Unfortunately the {roundInfo['name']} round did not have enough tokens left so your contribution will be refunded"
+
+        if topic == "io.ergopad.vesting.contribute":
+            contributionBox = tx["outputs"][0]
+            address = appKit.tree2Address(appKit.treeFromBytes(bytes.fromhex(vestingState.getRegisterHex(contributionBox,"R5"))))
+            proxyNFT = vestingState.getRegisterHex(contributionBox,"R6")
+            roundInfo = vestingState.roundInfo[proxyNFT]
+            if status == "confirmed":
+                additionalText = f"Your contribution for {roundInfo['name']} round has been confirmed. ErgoPads off-chain bots will attempt to vest your contribution"
+            else:
+                additionalText = f"Your contribution for {roundInfo['name']} round has been submitted to the mempool"
+
+        if topic == "io.ergopad.vesting.vest":
+            contributionBox = vestingState.getContributionBoxById(tx["inputs"][1]["boxId"])
+            address = appKit.tree2Address(appKit.treeFromBytes(bytes.fromhex(vestingState.getRegisterHex(contributionBox,"R5"))))
+            proxyNFT = vestingState.getRegisterHex(contributionBox,"R6")
+            roundInfo = vestingState.roundInfo[proxyNFT]
+            if status == "confirmed":
+                additionalText = f"Your vest transaction for {roundInfo['name']} round has been confirmed. Check your wallet to verify you have received a vesting key"
+            else:
+                additionalText = f"Your vest transaction for {roundInfo['name']} round has been submitted to the mempool"
+
+        context = f'Contribution to {roundInfo["name"]} round'
+        
+        if bearerToken["token"] is None or currentTime > bearerToken["expired"]:
+            bearerToken["token"] = getBearerToken()
+            bearerToken["expired"] = currentTime + 3600
+
+        headers = {
+            'accept': 'application/json', 
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {bearerToken["token"]}'
+        }
+
+        notification = {
+            'transactionId': txId,
+            'transactionStatus': status,
+            'context': context,
+            'additionalText': additionalText
+        }
+
+        res = requests.post(f'{os.getenv("ERGOPAD_API")}/notifications/{address}', headers=headers, json=notification)
+        logging.info(res.request)
+        logging.info(res.content)
     except Exception as e:
         logging.error(e)
 
@@ -169,10 +267,12 @@ async def main():
                 logging.info(vestingState.oracle)
         if message.topic == "io.ergopad.vesting.refund":
             tx = message.value
+            notifyUser(message.topic,tx,vestingState,appKit)
             vestingState.newTx(tx)
         if message.topic == "io.ergopad.vesting.contribute":
             tx = message.value
             vestingState.newTx(tx)
+            notifyUser(message.topic,tx,vestingState,appKit)
         if message.topic == "io.ergopad.vesting.new_proxy":
             tx = message.value
             vestingState.newTx(tx)
@@ -180,6 +280,7 @@ async def main():
             vestingState.roundInfo[tx["outputs"][1]["assets"][1]["tokenId"]] = getRoundInfo(config,tx["outputs"][1]["assets"][1]["tokenId"])
         if message.topic == "io.ergopad.vesting.vest":
             tx = message.value
+            notifyUser(message.topic,tx,vestingState,appKit)
             vestingState.newTx(tx)
         if message.topic == "io.ergopad.vesting.mempoolcheck":
             logging.info("Checking mempool")

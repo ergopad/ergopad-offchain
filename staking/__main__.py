@@ -83,7 +83,13 @@ async def currentStakingState(config) -> StakingState:
     limit = 100
     moreBoxes = True
     while moreBoxes:
-        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeTokenID}?offset={offset}&limit={limit}',timeout=120)
+        success = False
+        while not success:
+            try:
+                res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeTokenID}?offset={offset}&limit={limit}',timeout=120)
+                success = True
+            except:
+                pass
         boxes = res.json()["items"]
         moreBoxes = len(boxes) == limit
         for box in boxes:

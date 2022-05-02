@@ -67,12 +67,16 @@ class Mempool:
         self._utxosByTree[ergoTree] = result
         return result
 
+    def getBoxById(self, boxId):
+        return list(self._outputs.get(boxId,{"0": None}).values())[0]
+
     def validateMempool(self, nodeUrl):
         try:
             mempoolOffset = 0
             mempoolLimit = 100
             mempoolScanDone = False
             mempoolTransactions = []
+            failedTransactions = []
             while not mempoolScanDone:
                 mempool_result: requests.Response = requests.get(f"{nodeUrl}/transactions/unconfirmed?offset={mempoolOffset}&limit={mempoolLimit}")
                 if mempool_result.ok:
