@@ -232,7 +232,7 @@ class VestingState:
             )
 
             sellerOutput = appKit.buildOutBox(
-                value=contributionBox["value"]-int(215e5),
+                value=contributionBox["value"]-int(185e5),
                 tokens=contributionTokens,
                 registers=None,
                 contract=appKit.contractFromTree(appKit.treeFromBytes(bytes.fromhex(self.getRegisterHex(proxyBox,"R6"))))
