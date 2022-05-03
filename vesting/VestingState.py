@@ -221,7 +221,7 @@ class VestingState:
             )
 
             userOutput = appKit.mintToken(
-                value=int(1e6),
+                value=int(5e5),
                 tokenId=proxyBox["boxId"],
                 tokenName=f"{roundInfo['name']} Vesting Key",
                 tokenDesc=f'{{"Vesting Round": "{roundInfo["name"]}", "Vesting start": "{datetime.fromtimestamp(proxyR4.getValue().apply(2)/1000)}", "Periods": {proxyR4.getValue().apply(1)}, "Period length": "{timedelta(milliseconds=proxyR4.getValue().apply(0)).days} day(s)", "Total vested": {(tokenAmount*10**(-1*self.roundInfo[proxyBox["assets"][1]["tokenId"]]["decimals"]))} }}',
@@ -231,7 +231,7 @@ class VestingState:
             )
 
             sellerOutput = appKit.buildOutBox(
-                value=contributionBox["value"]-int(22e6),
+                value=contributionBox["value"]-int(215e5),
                 tokens=contributionTokens,
                 registers=None,
                 contract=appKit.contractFromTree(appKit.treeFromBytes(bytes.fromhex(self.getRegisterHex(proxyBox,"R6"))))
