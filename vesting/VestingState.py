@@ -108,6 +108,7 @@ class VestingState:
             if contributionBox is None:
                 return (None, None)
 
+            logging.info(contributionBox)
             refundThreshold = self.getRegister(contributionBox,"R4").getValue()
             userTree = self.getRegisterHex(contributionBox,"R5")
             proxyNFT = self.getRegisterHex(contributionBox,"R6")
