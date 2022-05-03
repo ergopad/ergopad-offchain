@@ -132,6 +132,8 @@ async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, produce
             vestingState.newTx(json.loads(signedTx.toJson(False)))
         except Exception as e:
             logging.error(e)
+    if txType == "error":
+        vestingState.mempool.validateMempool(config["ERGO_NODE"])
 
 def getRoundInfo(config, proxyNFT):
     try:

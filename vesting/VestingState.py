@@ -256,6 +256,7 @@ class VestingState:
 
         except Exception as e:
             logging.error(f'ERR:{e}')
+            return ('error', None)
 
     def __str__(self):
         result = "Current Vesting state:\n"
