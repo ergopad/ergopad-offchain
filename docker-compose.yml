@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   staking:
       networks:
         - ergo-offchain-execution_net
@@ -9,6 +10,7 @@ services:
       volumes:
         - ./:/code
       entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./staking" -- python -m staking
+
   vesting:
       env_file: .env
       networks:
@@ -19,6 +21,7 @@ services:
       volumes:
         - ./:/code
       entrypoint: watchmedo auto-restart --recursive --pattern="*.py" --directory="./vesting" -- python -m vesting
+
 networks:
   ergo-offchain-execution_net:
     external: true
