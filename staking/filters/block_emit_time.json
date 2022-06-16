@@ -1,9 +1,9 @@
 {
-    "name": "io.ergopad.staking.emit_time",
+    "name": ".staking.emit_time",
     "filterType": "block",
     "repeats": -1,
     "topics": [
-        "io.ergopad.staking.emit_time"
+        ".staking.emit_time"
     ],
     "messageTemplate": "%block%",
     "filterTree": {
