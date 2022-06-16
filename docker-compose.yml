@@ -2,6 +2,7 @@ version: '3'
 services:
 
   staking:
+      env_file: .env
       networks:
         - ergo-offchain-execution_net
       build:
