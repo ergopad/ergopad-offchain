@@ -138,7 +138,7 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
     try:
         unsignedTx = stakingState.emitTransaction(appKit,config['REWARD_ADDRESS'])
         if unsignedTx is not None:
-            txType = "io.ergopad.staking.emit"
+            txType = project + ".staking.emit"
             logging.info("Submitting emit tx")
     except Exception as e:
         logging.error(e)
@@ -146,7 +146,7 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
         try:
             unsignedTx = stakingState.compoundTX(appKit,config['REWARD_ADDRESS'])
             if unsignedTx is not None:
-                txType = "io.ergopad.staking.compound"
+                txType = project + ".staking.compound"
                 logging.info("Submitting compound tx")
         except Exception as e:
             pass#logging.error(e)
@@ -154,7 +154,7 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
         try:
             unsignedTx = stakingState.consolidateTransaction(appKit,config['REWARD_ADDRESS'])
             if unsignedTx is not None:
-                txType = "io.ergopad.staking.consolidate"
+                txType = project + ".staking.consolidate"
                 logging.info("Submitting consolidate tx")
         except Exception as e:
             pass#logging.error(e)
@@ -178,7 +178,7 @@ async def checkMempool(config):
     while True:
         await asyncio.sleep(240)
         try:
-            producer.send('io.ergopad.staking.mempoolcheck',"{'dummy':1}")
+            producer.send(project + '.staking.mempoolcheck',"{'dummy':1}")
         except Exception as e:
             logging.error(e)
 
@@ -189,7 +189,7 @@ async def main():
     appKit = ErgoAppKit(config['ERGO_NODE'],'mainnet',config['ERGO_EXPLORER'])
     stakingState = await currentStakingState(config)
     logging.info(stakingState)
-    consumer = KafkaConsumer(*topics,group_id='io.ergopad.staking',bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",value_deserializer=lambda m: json.loads(m.decode('utf-8')))
+    consumer = KafkaConsumer(*topics,group_id=project + '.staking',bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     producer = None
     while producer is None:
         try:
@@ -198,10 +198,10 @@ async def main():
             await asyncio.sleep(2)
     await makeTx(appKit,stakingState,config,producer)
     for message in consumer:
-        if message.topic == "io.ergopad.staking.mempoolcheck":
+        if message.topic == project + ".staking.mempoolcheck":
             logging.info("Checking mempool")
             stakingState.mempool.validateMempool(config['ERGO_NODE'])
-        if message.topic == "io.ergopad.staking.stake_state":
+        if message.topic == project + ".staking.stake_state":
             tx = message.value
             stakingState.newTx(tx)
             if "globalIndex" in tx:
@@ -225,7 +225,7 @@ async def main():
                         else:
                             logging.info("Unstake transaction")
                             stakingState.removeStakeBox(tx["inputs"][1]["boxId"])
-        if message.topic == "io.ergopad.staking.emission":
+        if message.topic == project + ".staking.emission":
             tx = message.value
             stakingState.newTx(tx)
             if "globalIndex" in tx:
@@ -237,7 +237,7 @@ async def main():
                             stakingState.addStakeBox(outp)
                     if outp["ergoTree"] == incentiveTree:
                         stakingState.addIncentiveBox(outp)
-        if message.topic == "io.ergopad.staking.incentive":
+        if message.topic == project + ".staking.incentive":
             tx = message.value
             stakingState.newTx(tx)
             if "globalIndex" in tx:
@@ -245,7 +245,7 @@ async def main():
                     if outp["ergoTree"] == incentiveTree:
                         stakingState.addIncentiveBox(outp)
                 logging.info("Funding or consolidation transaction")
-        if message.topic == "io.ergopad.staking.emit_time":
+        if message.topic == project + ".staking.emit_time":
             logging.info("Emission time")
         logging.info(stakingState)
         await makeTx(appKit,stakingState,config,producer)
