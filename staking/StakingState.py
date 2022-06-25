@@ -107,7 +107,7 @@ class StakingState:
 
             for box in self._stakeBoxes.values():
                 boxR4 = self.getR4(box)
-                if boxR4.apply(0) == emissionR4.apply(1) and not self.mempool.isSpent(box["boxId"]):
+                if boxR4.apply(0) == emissionR4.apply(1) and not self.mempool.isSpent(box["boxId"]) and box["boxId"]!="86a9b423bfe23b5359466a2b5aa67a9c8e6b1c0f2d9e1b3e4a8d4234f533ed98":
                     # calc rewards and build tx
                     stakeBoxes.append(box["boxId"])
                     stakeReward = int(box["assets"][1]["amount"] * emissionR4.apply(3) / emissionR4.apply(0))
