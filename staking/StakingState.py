@@ -126,8 +126,8 @@ class StakingState:
                     ))
 
                 # every <numBoxes>, go ahead and submit tx
-                if len(stakeBoxes)>=35:
-                    logging.info("found 35")
+                if len(stakeBoxes)>=30:
+                    logging.info("found 30")
                     break
             
             if len(stakeBoxes) == 0:
