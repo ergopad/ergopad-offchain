@@ -224,7 +224,7 @@ class VestingState:
             userOutput = appKit.mintToken(
                 value=int(5e5),
                 tokenId=proxyBox["boxId"],
-                tokenName=f"{roundInfo['name']} Vesting Key",
+                tokenName=f"ErgoPOS {roundInfo['name']} Vesting Key",
                 tokenDesc=f'{{"Vesting Round": "{roundInfo["name"]}", "Vesting start": "{datetime.fromtimestamp(proxyR4.getValue().apply(2)/1000)}", "Periods": {proxyR4.getValue().apply(1)}, "Period length": "{timedelta(milliseconds=proxyR4.getValue().apply(0)).days} day(s)", "Total vested": {(tokenAmount*10**(-1*self.roundInfo[proxyBox["assets"][1]["tokenId"]]["decimals"]))} }}',
                 mintAmount=1,
                 decimals=0,
@@ -252,6 +252,8 @@ class VestingState:
                 fee = int(10e6),
                 sendChangeTo =appKit.contractFromAddress(rewardAddress).toAddress().getErgoAddress()
             )
+
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
 
             return ('io.ergopad.vesting.vest', unsignedTx)
 
