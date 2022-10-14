@@ -78,7 +78,7 @@ class VestingState:
         contribBoxList = list(list(self._contributionBoxes.values()) + self.mempool.getUTXOsByTree(contributionTree))
         contribBoxList.reverse()
         for box in contribBoxList:
-            if not self.mempool.isSpent(box["boxId"]):
+            if not self.mempool.isSpent(box["boxId"]) and (box["value"] > 22000000 or len(box["assets"])>1):
                 return box
     
     def getContributionBoxById(self, boxId):
