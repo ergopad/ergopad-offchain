@@ -92,7 +92,7 @@ async def currentVestingState(config) -> VestingState:
             fetchedOracle = True
         else:
             logging.info("Timed out fetching oracle, trying again in 5 seconds")
-            asyncio.sleep(5000)
+            await asyncio.sleep(5000)
 
     offset = 0
     limit = 100
