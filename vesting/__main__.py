@@ -84,8 +84,15 @@ async def initiateFilters():
 async def currentVestingState(config) -> VestingState:
     result = VestingState()
 
-    res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{ergUsdOracleNFT}',timeout=120)
-    result.oracle = res.json()["items"][0]
+    fetchedOracle = False
+    while not fetchedOracle:
+        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{ergUsdOracleNFT}',timeout=120)
+        if res.ok:
+            result.oracle = res.json()["items"][0]
+            fetchedOracle = True
+        else:
+            logging.info("Timed out fetching oracle, trying again in 5 seconds")
+            asyncio.sleep(5000)
 
     offset = 0
     limit = 100
