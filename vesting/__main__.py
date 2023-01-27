@@ -147,7 +147,7 @@ async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, produce
             producer.send('ergo.submit_tx',value=txInfo)
             if txType.startswith('io.ergopad.vesting.refund'):
                 notifyUser("io.ergopad.vesting.refund",signedTxJson,vestingState,appKit)
-            vestingState.newTx(json.loads(signedTxJson))
+            vestingState.newTx(signedTxJson)
         except Exception as e:
             logging.error(e)
     if txType == "error":
