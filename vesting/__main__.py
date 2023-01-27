@@ -121,16 +121,6 @@ async def currentVestingState(config) -> VestingState:
 
     return result
 
-def dummySign(unsignedJson):
-    for inp in unsignedJson["inputs"]:
-        inp["spendingProof"] = {"proofBytes": "", "extension": {}}
-    for outp in unsignedJson["outputs"]:
-        outp["value"] = int(outp["value"])
-        if "assets" in outp:
-            for asset in outp["assets"]:
-                asset["amount"] = int(asset["amount"])
-    return unsignedJson
-
 async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, producer: KafkaProducer):
     unsignedTx = None
     txType = ""
@@ -140,14 +130,13 @@ async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, produce
         logging.error(e)
     if unsignedTx is not None:
         try:
-            #signedTx = appKit.signTransaction(unsignedTx)
-            #signedTxJson = json.loads(signedTx.toJson(False))
-            signedTxJson = dummySign(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            signedTx = appKit.signTransaction(unsignedTx)
+            signedTxJson = json.loads(signedTx.toJson(False))
             txInfo = {'type': txType, 'tx': signedTxJson}
             producer.send('ergo.submit_tx',value=txInfo)
             if txType.startswith('io.ergopad.vesting.refund'):
                 notifyUser("io.ergopad.vesting.refund",signedTxJson,vestingState,appKit)
-            vestingState.newTx(signedTxJson)
+            vestingState.newTx(json.loads(signedTx.toJson(False)))
         except Exception as e:
             logging.error(e)
     if txType == "error":
