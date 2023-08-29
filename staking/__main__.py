@@ -100,7 +100,7 @@ async def currentStakingState(config) -> StakingState:
             try:
                 req = f'{config["ERGO_NODE"]}/blockchain/box/unspent/byAddress?offset={offset}&limit={limit}&sortDirection=asc'
                 logging.debug(req)
-                res = requests.post(req, text=stake_address, timeout=120)
+                res = requests.post(req, data=stake_address, timeout=120)
                 if res.json():
                     success = True
             except Exception as e:
