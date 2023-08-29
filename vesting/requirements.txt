@@ -2,4 +2,4 @@ cachetools==5.0.0
 kafka-python==2.0.2
 requests==2.27.1
 watchdog==2.1.7
-git+https://github.com/ergo-pad/ergo-python-appkit.git
+ergo-python-appkit==0.2.1

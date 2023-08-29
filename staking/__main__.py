@@ -27,6 +27,7 @@ stakeTokenID =  os.getenv("STAKE_TOKEN_ID")
 stakedTokenID = os.getenv("STAKED_TOKEN_ID")
 incentiveAddress = os.getenv("INCENTIVE_ADDRESS")
 incentiveTree = os.getenv("INCENTIVE_TREE")
+stake_address = "3eiC8caSy3jiCxCmdsiFNFJ1Ykppmsmff2TEpSsXY1Ha7xbpB923Uv2midKVVkxL3CzGbSS2QURhbHMzP9b9rQUKapP1wpUQYPpH8UebbqVFHJYrSwM3zaNEkBkM9RjjPxHCeHtTnmoun7wzjajrikVFZiWurGTPqNnd1prXnASYh7fd9E2Limc2Zeux4UxjPsLc1i3F9gSjMeSJGZv3SNxrtV14dgPGB9mY1YdziKaaqDVV2Lgq3BJC9eH8a3kqu7kmDygFomy3DiM2hYkippsoAW6bYXL73JMx1tgr462C4d2PE7t83QmNMPzQrD826NZWM2c1kehWB6Y1twd5F9JzEs4Lmd2qJhjQgGg4yyaEG9irTC79pBeGUj98frZv1Aaj6xDmZvM22RtGX5eDBBu2C8GgJw3pUYr3fQuGZj7HKPXFVuk3pSTQRqkWtJvnpc4rfiPYYNpM5wkx6CPenQ39vsdeEi36mDL8Eww6XvyN4cQxzJFcSymATDbQZ1z8yqYSQeeDKF6qCM7ddPr5g5fUzcApepqFrGNg7MqGAs1euvLGHhRk7UoeEpofFfwp3Km5FABdzAsdFR9"
 
 project = os.getenv("PROJECT")
 
@@ -91,21 +92,21 @@ async def currentStakingState(config) -> StakingState:
         result.stakePool = res.json()["items"][0]
 
     offset = 0
-    limit = 100
+    limit = 1000
     moreBoxes = True
     while moreBoxes:
         success = False
         while not success:
             try:
-                req = f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeTokenID}?offset={offset}&limit={limit}'
+                req = f'{config["ERGO_NODE"]}/blockchain/box/unspent/byAddress?offset={offset}&limit={limit}&sortDirection=asc'
                 logging.debug(req)
-                res = requests.get(req, timeout=120)
-                if 'items' in res.json():
+                res = requests.post(req, text=stake_address, timeout=120)
+                if res.json():
                     success = True
             except Exception as e:
                 logging.error(f'currentStakingState::{e}')
                 pass
-        boxes = res.json()["items"]
+        boxes = res.json()
         moreBoxes = len(boxes) == limit
         for box in boxes:
             if box["assets"][0]["tokenId"] == stakeTokenID:
