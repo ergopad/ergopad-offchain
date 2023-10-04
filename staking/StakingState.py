@@ -107,6 +107,7 @@ class StakingState:
                 return
 
             for box in self._stakeBoxes.values():
+                logging.info(box)
                 boxR4 = self.getR4(box)
                 if boxR4.apply(0) == emissionR4.apply(1) and not self.mempool.isSpent(box["boxId"]) and box["boxId"]!="3230c19953f9a4f1b887f45598ae691c16e5aceda8e319c8d5a80c5d3a5060b3" and box["boxId"]!="86a9b423bfe23b5359466a2b5aa67a9c8e6b1c0f2d9e1b3e4a8d4234f533ed98" and box["boxId"]!="3caba90e59c5d78ecb99ca472cd74f5620c3197c7cf4b3b47ded6d31d93608c7":
                     # calc rewards and build tx
