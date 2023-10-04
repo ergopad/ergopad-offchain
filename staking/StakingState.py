@@ -107,7 +107,6 @@ class StakingState:
                 return
 
             for box in self._stakeBoxes.values():
-                logging.info(box)
                 boxR4 = self.getR4(box)
                 if boxR4.apply(0) == emissionR4.apply(1) and not self.mempool.isSpent(box["boxId"]) and box["boxId"]!="3230c19953f9a4f1b887f45598ae691c16e5aceda8e319c8d5a80c5d3a5060b3" and box["boxId"]!="86a9b423bfe23b5359466a2b5aa67a9c8e6b1c0f2d9e1b3e4a8d4234f533ed98" and box["boxId"]!="3caba90e59c5d78ecb99ca472cd74f5620c3197c7cf4b3b47ded6d31d93608c7":
                     # calc rewards and build tx
@@ -122,7 +121,7 @@ class StakingState:
                         },
                         registers=[
                             ErgoAppKit.ergoValue([boxR4.apply(0)+1,boxR4.apply(1)],ErgoValueT.LongArray),
-                            ErgoAppKit.ergoValue(box["additionalRegisters"]["R5"]["renderedValue"],ErgoValueT.ByteArrayFromHex)
+                            ErgoAppKit.ergoValue(box["additionalRegisters"]["R5"]["renderedValue"] if "renderedValue" in box["additionalRegisters"]["R5"] else box["additionalRegisters"]["R5"][4:],ErgoValueT.ByteArrayFromHex)
                         ],
                         contract=appKit.contractFromAddress(box["address"])
                     ))
