@@ -142,7 +142,7 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
             txType = project + ".staking.emit"
             logging.info("Submitting emit tx")
     except Exception as e:
-        logging.error(e)
+        logging.error(f"makeTx->emit: {e}")
     if unsignedTx is None:
         try:
             unsignedTx = stakingState.compoundTX(appKit,config['REWARD_ADDRESS'])
@@ -167,7 +167,7 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
             producer.send('ergo.submit_tx',value=txInfo)
             stakingState.newTx(json.loads(signedTx.toJson(False)))
         except Exception as e:
-            logging.error(e)
+            logging.error(f"makeTx->signing: {e}")
 
 async def checkMempool(config):
     producer = None
@@ -181,7 +181,7 @@ async def checkMempool(config):
         try:
             producer.send(project + '.staking.mempoolcheck',"{'dummy':1}")
         except Exception as e:
-            logging.error(e)
+            logging.error(f"checkMempool: {e}")
 
 async def main():
     config = await getConfig()
