@@ -142,7 +142,9 @@ class StakingState:
             txValue = int(900000 + (750000 * len(stakeBoxes)))
             incentiveBox = self.getIncentiveBox(txValue)
             txFee = int(max(int(1e6),(int(1e6)+int(5e5)*len(stakeBoxesOutput))))
-            logging.info("check 1")
+            logging.info(self.emission["boxId"])
+            logging.info(incentiveBox["boxId"])
+            logging.info(stakeBoxes)
             inputs = appKit.getBoxesById([self.emission["boxId"]]+stakeBoxes+[incentiveBox["boxId"]])
             logging.info("check 2")
             emissionOutput = appKit.buildOutBox(
