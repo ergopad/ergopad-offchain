@@ -37,7 +37,7 @@ class StakingState:
         if not mempool:
             r5 = stakeBox["additionalRegisters"]["R5"]["serializedValue"][4:] if "serializedValue" in stakeBox["additionalRegisters"]["R5"] else stakeBox["additionalRegisters"]["R5"][4:]
             if r5 in self._stakeBoxes:
-                if stakeBox["settlementHeight"] <= self._stakeBoxes[r5].get("settlementHeight", default=self._stakeBoxes[r5]["inclusionHeight"]):
+                if stakeBox["settlementHeight"] <= self._stakeBoxes[r5].get("settlementHeight", self._stakeBoxes[r5]["inclusionHeight"]):
                     return False
             self._stakeBoxes[r5] = stakeBox
             return True
