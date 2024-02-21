@@ -12,18 +12,20 @@ import threading
 from staking.StakingState import StakingState
 
 levelname = logging.DEBUG
-logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', level=levelname)
-logger = logging.getLogger('kafka')
+logging.basicConfig(
+    format="{asctime}:{name:>8s}:{levelname:<8s}::{message}", style="{", level=levelname
+)
+logger = logging.getLogger("kafka")
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.WARN)
-logger = logging.getLogger('urllib3.connectionpool')
+logger = logging.getLogger("urllib3.connectionpool")
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.WARN)
 
 stakeStateNFT = os.getenv("STAKE_STATE_NFT")
 stakePoolNFT = os.getenv("STAKE_POOL_NFT")
 emissionNFT = os.getenv("EMISSION_NFT")
-stakeTokenID =  os.getenv("STAKE_TOKEN_ID")
+stakeTokenID = os.getenv("STAKE_TOKEN_ID")
 stakedTokenID = os.getenv("STAKED_TOKEN_ID")
 incentiveAddress = os.getenv("INCENTIVE_ADDRESS")
 incentiveTree = os.getenv("INCENTIVE_TREE")
@@ -33,61 +35,73 @@ project = os.getenv("PROJECT")
 
 producer: KafkaProducer = None
 
+
 async def getConfig():
     configResult = requests.get("http://eo-api:8901/api/config")
 
     return configResult.json()
 
-async def initiateFilters():
-    topics = [f'{project}.staking.emit_time',f'{project}.staking.mempoolcheck']
 
-    with open('staking/filters/tx_stake_state.json') as f:
+async def initiateFilters():
+    topics = [f"{project}.staking.emit_time", f"{project}.staking.mempoolcheck"]
+
+    with open("staking/filters/tx_stake_state.json") as f:
         stake_state_filter = json.loads(f.read())
         stake_state_filter["name"] = project + stake_state_filter["name"]
         stake_state_filter["topics"][0] = project + stake_state_filter["topics"][0]
         stake_state_filter["filterTree"]["comparisonValue"] = stakeStateNFT
-    res = requests.post('http://eo-api:8901/api/filter', json=stake_state_filter)
+    res = requests.post("http://eo-api:8901/api/filter", json=stake_state_filter)
     if res.ok:
         logging.info(res.json())
-        topics = topics + stake_state_filter['topics']
+        topics = topics + stake_state_filter["topics"]
 
-    with open('staking/filters/tx_emission.json') as f:
+    with open("staking/filters/tx_emission.json") as f:
         emission_filter = json.loads(f.read())
         emission_filter["name"] = project + emission_filter["name"]
         emission_filter["topics"][0] = project + emission_filter["topics"][0]
         emission_filter["filterTree"]["comparisonValue"] = emissionNFT
-    res = requests.post('http://eo-api:8901/api/filter', json=emission_filter)
+    res = requests.post("http://eo-api:8901/api/filter", json=emission_filter)
     if res.ok:
         logging.info(res.json())
-        topics = topics + emission_filter['topics']
+        topics = topics + emission_filter["topics"]
 
-    with open('staking/filters/tx_incentive.json') as f:
+    with open("staking/filters/tx_incentive.json") as f:
         incentive_filter = json.loads(f.read())
         incentive_filter["name"] = project + incentive_filter["name"]
         incentive_filter["topics"][0] = project + incentive_filter["topics"][0]
         incentive_filter["filterTree"]["comparisonValue"] = incentiveTree
-    res = requests.post('http://eo-api:8901/api/filter', json=incentive_filter)
+    res = requests.post("http://eo-api:8901/api/filter", json=incentive_filter)
     if res.ok:
         logging.info(res.json())
-        topics = topics + incentive_filter['topics']
-    
+        topics = topics + incentive_filter["topics"]
+
     return topics
+
 
 async def currentStakingState(config) -> StakingState:
     result = StakingState()
 
-    res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeStateNFT}',timeout=120)
+    res = requests.get(
+        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeStateNFT}',
+        timeout=120,
+    )
     if res.ok:
         result.stakeState = res.json()["items"][0]
     logging.info(result.nextCycleTime())
 
     await setTimeFilter(result)
 
-    res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{emissionNFT}',timeout=120)
+    res = requests.get(
+        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{emissionNFT}',
+        timeout=120,
+    )
     if res.ok:
         result.emission = res.json()["items"][0]
 
-    res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakePoolNFT}',timeout=120)
+    res = requests.get(
+        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakePoolNFT}',
+        timeout=120,
+    )
     if res.ok:
         result.stakePool = res.json()["items"][0]
 
@@ -104,12 +118,12 @@ async def currentStakingState(config) -> StakingState:
                 if res.json():
                     success = True
             except Exception as e:
-                logging.error(f'currentStakingState::{e}')
+                logging.error(f"currentStakingState::{e}")
                 pass
         boxes = res.json()
         moreBoxes = len(boxes) == limit
         for box in boxes:
-            if box["assets"][0]["tokenId"] == stakeTokenID:
+            if len(box["assets"]) > 0 and box["assets"][0]["tokenId"] == stakeTokenID:
                 result.addStakeBox(box)
         offset += limit
 
@@ -117,7 +131,10 @@ async def currentStakingState(config) -> StakingState:
     limit = 100
     moreBoxes = True
     while moreBoxes:
-        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byAddress/{incentiveAddress}?offset={offset}&limit={limit}',timeout=120)
+        res = requests.get(
+            f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byAddress/{incentiveAddress}?offset={offset}&limit={limit}',
+            timeout=120,
+        )
         boxes = res.json()["items"]
         moreBoxes = len(boxes) == limit
         for box in boxes:
@@ -126,18 +143,22 @@ async def currentStakingState(config) -> StakingState:
 
     return result
 
+
 async def setTimeFilter(stakingState: StakingState):
-    with open('staking/filters/block_emit_time.json') as f:
+    with open("staking/filters/block_emit_time.json") as f:
         block_time_filter = json.loads(f.read())
         block_time_filter["name"] = project + block_time_filter["name"]
     block_time_filter["filterTree"]["comparisonValue"] = stakingState.nextCycleTime()
-    requests.post('http://eo-api:8901/api/filter', json=block_time_filter)
+    requests.post("http://eo-api:8901/api/filter", json=block_time_filter)
 
-async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, producer: KafkaProducer):
+
+async def makeTx(
+    appKit: ErgoAppKit, stakingState: StakingState, config, producer: KafkaProducer
+):
     unsignedTx = None
     txType = ""
     try:
-        unsignedTx = stakingState.emitTransaction(appKit,config['REWARD_ADDRESS'])
+        unsignedTx = stakingState.emitTransaction(appKit, config["REWARD_ADDRESS"])
         if unsignedTx is not None:
             txType = project + ".staking.emit"
             logging.info("Submitting emit tx")
@@ -145,63 +166,78 @@ async def makeTx(appKit: ErgoAppKit, stakingState: StakingState, config, produce
         logging.error(f"makeTx->emit: {e}")
     if unsignedTx is None:
         try:
-            unsignedTx = stakingState.compoundTX(appKit,config['REWARD_ADDRESS'])
+            unsignedTx = stakingState.compoundTX(appKit, config["REWARD_ADDRESS"])
             if unsignedTx is not None:
                 txType = project + ".staking.compound"
                 logging.info("Submitting compound tx")
         except Exception as e:
-            pass#logging.error(e)
+            pass  # logging.error(e)
     if unsignedTx is None:
         try:
-            unsignedTx = stakingState.consolidateTransaction(appKit,config['REWARD_ADDRESS'])
+            unsignedTx = stakingState.consolidateTransaction(
+                appKit, config["REWARD_ADDRESS"]
+            )
             if unsignedTx is not None:
                 txType = project + ".staking.consolidate"
                 logging.info("Submitting consolidate tx")
         except Exception as e:
-            pass#logging.error(e)
+            pass  # logging.error(e)
     if unsignedTx is not None:
         try:
             signedTx = appKit.signTransaction(unsignedTx)
             signedTxJson = json.loads(signedTx.toJson(False))
-            txInfo = {'type': txType, 'tx': signedTxJson}
-            producer.send('ergo.submit_tx',value=txInfo)
+            txInfo = {"type": txType, "tx": signedTxJson}
+            producer.send("ergo.submit_tx", value=txInfo)
             stakingState.newTx(json.loads(signedTx.toJson(False)))
         except Exception as e:
             logging.error(f"makeTx->signing: {e}")
+
 
 async def checkMempool(config):
     producer = None
     while producer is None:
         try:
-            producer = KafkaProducer(bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",value_serializer=lambda m: json.dumps(m).encode('utf-8'))
+            producer = KafkaProducer(
+                bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",
+                value_serializer=lambda m: json.dumps(m).encode("utf-8"),
+            )
         except:
             await asyncio.sleep(2)
     while True:
         await asyncio.sleep(240)
         try:
-            producer.send(project + '.staking.mempoolcheck',"{'dummy':1}")
+            producer.send(project + ".staking.mempoolcheck", "{'dummy':1}")
         except Exception as e:
             logging.error(f"checkMempool: {e}")
+
 
 async def main():
     config = await getConfig()
     threading.Thread(target=asyncio.run, args=(checkMempool(config),)).start()
     topics = await initiateFilters()
-    appKit = ErgoAppKit(config['ERGO_NODE'],'mainnet',config['ERGO_EXPLORER'])
+    appKit = ErgoAppKit(config["ERGO_NODE"], "mainnet", config["ERGO_EXPLORER"])
     stakingState = await currentStakingState(config)
     logging.info(stakingState)
-    consumer = KafkaConsumer(*topics,group_id=project + '.staking',bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",value_deserializer=lambda m: json.loads(m.decode('utf-8')))
+    consumer = KafkaConsumer(
+        *topics,
+        group_id=project + ".staking",
+        bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",
+        value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+    )
     producer = None
     while producer is None:
         try:
-            producer = KafkaProducer(bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",value_serializer=lambda m: json.dumps(m).encode('utf-8'))
+            producer = KafkaProducer(
+                bootstrap_servers=f"{config['KAFKA_HOST']}:{config['KAFKA_PORT']}",
+                value_serializer=lambda m: json.dumps(m).encode("utf-8"),
+            )
         except:
             await asyncio.sleep(2)
-    await makeTx(appKit,stakingState,config,producer)
+    await makeTx(appKit, stakingState, config, producer)
     for message in consumer:
         if message.topic == project + ".staking.mempoolcheck":
             logging.info("Checking mempool")
-            stakingState.mempool.validateMempool(config['ERGO_NODE'])
+            stakingState.mempool.validateMempool(config["ERGO_NODE"])
         if message.topic == project + ".staking.stake_state":
             tx = message.value
             stakingState.newTx(tx)
@@ -249,8 +285,7 @@ async def main():
         if message.topic == project + ".staking.emit_time":
             logging.info("Emission time")
         logging.info(stakingState)
-        await makeTx(appKit,stakingState,config,producer)
-        
-asyncio.run(main())
+        await makeTx(appKit, stakingState, config, producer)
 
-            
+
+asyncio.run(main())
