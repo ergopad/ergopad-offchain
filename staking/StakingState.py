@@ -38,8 +38,10 @@ class StakingState:
             "settlementHeight" not in stakeBox and "inclusionHeight" not in stakeBox
         )
         if not mempool:
-            height = stakeBox.get(
-                "settlementHeight", default=stakeBox["inclusionHeight"]
+            height = (
+                stakeBox["settlementHeight"]
+                if "settlementHeight" in stakeBox
+                else stakeBox["inclusionHeight"]
             )
             r5 = (
                 stakeBox["additionalRegisters"]["R5"]["serializedValue"][4:]
