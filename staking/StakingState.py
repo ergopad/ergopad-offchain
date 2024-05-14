@@ -35,12 +35,12 @@ class StakingState:
 
     def addStakeBox(self, stakeBox) -> bool:
         mempool = (
-            "settlementHeight" not in stakeBox and "inclusionHeight" not in stakeBox
+            "inclusionHeight" not in stakeBox and "inclusionHeight" not in stakeBox
         )
         if not mempool:
             height = (
-                stakeBox["settlementHeight"]
-                if "settlementHeight" in stakeBox
+                stakeBox["inclusionHeight"]
+                if "inclusionHeight" in stakeBox
                 else stakeBox["inclusionHeight"]
             )
             r5 = (
@@ -50,7 +50,7 @@ class StakingState:
             )
             if r5 in self._stakeBoxes:
                 if height <= self._stakeBoxes[r5].get(
-                    "settlementHeight", self._stakeBoxes[r5]["inclusionHeight"]
+                    "inclusionHeight", self._stakeBoxes[r5]["inclusionHeight"]
                 ):
                     return False
             self._stakeBoxes[r5] = stakeBox
@@ -67,7 +67,7 @@ class StakingState:
             self._stakeBoxes.pop(keyToRemove, None)
 
     def addIncentiveBox(self, incentiveBox) -> bool:
-        mempool = "settlementHeight" not in incentiveBox
+        mempool = "inclusionHeight" not in incentiveBox
         if not mempool:
             self._incentiveBoxes[incentiveBox["boxId"]] = incentiveBox
             return True
@@ -401,7 +401,7 @@ class StakingState:
 
     @stakeState.setter
     def stakeState(self, value):
-        if "settlementHeight" in value:
+        if "inclusionHeight" in value:
             self._stakeState = value
 
     @property
@@ -412,7 +412,7 @@ class StakingState:
 
     @emission.setter
     def emission(self, value):
-        if "settlementHeight" in value:
+        if "inclusionHeight" in value:
             self._emission = value
 
     @property
@@ -423,7 +423,7 @@ class StakingState:
 
     @stakePool.setter
     def stakePool(self, value):
-        if "settlementHeight" in value:
+        if "inclusionHeight" in value:
             self._stakePool = value
 
     @property

@@ -82,28 +82,28 @@ async def currentStakingState(config) -> StakingState:
     result = StakingState()
 
     res = requests.get(
-        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakeStateNFT}',
+        f'{config["ERGO_NODE"]}/blockchain/box/unspent/byTokenId/{stakeStateNFT}',
         timeout=120,
     )
     if res.ok:
-        result.stakeState = res.json()["items"][0]
+        result.stakeState = res.json()[0]
     logging.info(result.nextCycleTime())
 
     await setTimeFilter(result)
 
     res = requests.get(
-        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{emissionNFT}',
+        f'{config["ERGO_NODE"]}/blockchain/box/unspent/byTokenId/{emissionNFT}',
         timeout=120,
     )
     if res.ok:
-        result.emission = res.json()["items"][0]
+        result.emission = res.json()[0]
 
     res = requests.get(
-        f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{stakePoolNFT}',
+        f'{config["ERGO_NODE"]}/blockchain/box/unspent/byTokenId/{stakePoolNFT}',
         timeout=120,
     )
     if res.ok:
-        result.stakePool = res.json()["items"][0]
+        result.stakePool = res.json()[0]
 
     offset = 0
     limit = 1000
@@ -132,10 +132,10 @@ async def currentStakingState(config) -> StakingState:
     moreBoxes = True
     while moreBoxes:
         res = requests.get(
-            f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byAddress/{incentiveAddress}?offset={offset}&limit={limit}',
+            f'{config["ERGO_NODE"]}/blockchain/box/unspent/byAddress/{incentiveAddress}?offset={offset}&limit={limit}&sortDirection=asc',
             timeout=120,
         )
-        boxes = res.json()["items"]
+        boxes = res.json()
         moreBoxes = len(boxes) == limit
         for box in boxes:
             result.addIncentiveBox(box)

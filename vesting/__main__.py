@@ -86,9 +86,9 @@ async def currentVestingState(config) -> VestingState:
 
     fetchedOracle = False
     while not fetchedOracle:
-        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byTokenId/{ergUsdOracleNFT}',timeout=120)
+        res = requests.get(f'{config["ERGO_NODE"]}/blockchain/box/unspent/byTokenId/{ergUsdOracleNFT}',timeout=120)
         if res.ok:
-            result.oracle = res.json()["items"][0]
+            result.oracle = res.json()[0]
             fetchedOracle = True
         else:
             logging.info("Timed out fetching oracle, trying again in 5 seconds")
@@ -98,8 +98,8 @@ async def currentVestingState(config) -> VestingState:
     limit = 100
     moreBoxes = True
     while moreBoxes:
-        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byAddress/{proxyAddress}?offset={offset}&limit={limit}',timeout=120)
-        boxes = res.json()["items"]
+        res = requests.get(f'{config["ERGO_NODE"]}/blockchain/box/unspent/byAddress/{proxyAddress}?offset={offset}&limit={limit}&sortDirection=asc',timeout=120)
+        boxes = res.json()
         moreBoxes = len(boxes) == limit
         for box in boxes:
             result.addProxyBox(box)
@@ -112,8 +112,8 @@ async def currentVestingState(config) -> VestingState:
     limit = 100
     moreBoxes = True
     while moreBoxes:
-        res = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/boxes/unspent/byAddress/{contributionAddress}?offset={offset}&limit={limit}',timeout=120)
-        boxes = res.json()["items"]
+        res = requests.get(f'{config["ERGO_NODE"]}/blockchain/box/unspent/byAddress/{contributionAddress}?offset={offset}&limit={limit}&sortDirection=asc',timeout=120)
+        boxes = res.json()
         moreBoxes = len(boxes) == limit
         for box in boxes:
             result.addContributionBox(box)
@@ -144,7 +144,7 @@ async def makeTx(appKit: ErgoAppKit, vestingState: VestingState, config, produce
 
 def getRoundInfo(config, proxyNFT):
     try:
-        tkn = requests.get(f'{config["ERGO_EXPLORER"]}/api/v1/tokens/{proxyNFT}')
+        tkn = requests.get(f'{config["ERGO_NODE"]}/blockchain/token/byId/{proxyNFT}')
         return tkn.json()
     except Exception as e:
         logging.error(e)
