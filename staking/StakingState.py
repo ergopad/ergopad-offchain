@@ -34,24 +34,12 @@ class StakingState:
         return r4.apply(3) + r4.apply(4)
 
     def addStakeBox(self, stakeBox) -> bool:
-        mempool = (
-            "inclusionHeight" not in stakeBox and "inclusionHeight" not in stakeBox
-        )
+        mempool = "inclusionHeight" not in stakeBox
         if not mempool:
-            height = (
-                stakeBox["inclusionHeight"]
-                if "inclusionHeight" in stakeBox
-                else stakeBox["inclusionHeight"]
-            )
-            r5 = (
-                stakeBox["additionalRegisters"]["R5"]["serializedValue"][4:]
-                if "serializedValue" in stakeBox["additionalRegisters"]["R5"]
-                else stakeBox["additionalRegisters"]["R5"][4:]
-            )
+            height = stakeBox["inclusionHeight"]
+            r5 = stakeBox["additionalRegisters"]["R5"][4:]
             if r5 in self._stakeBoxes:
-                if height <= self._stakeBoxes[r5].get(
-                    "inclusionHeight", self._stakeBoxes[r5]["inclusionHeight"]
-                ):
+                if height <= self._stakeBoxes[r5]["inclusionHeight"]:
                     return False
             self._stakeBoxes[r5] = stakeBox
             return True

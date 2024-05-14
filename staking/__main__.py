@@ -125,6 +125,8 @@ async def currentStakingState(config) -> StakingState:
         for box in boxes:
             if len(box["assets"]) > 0 and box["assets"][0]["tokenId"] == stakeTokenID:
                 result.addStakeBox(box)
+            else:
+                logging.info(box)
         offset += limit
 
     offset = 0
