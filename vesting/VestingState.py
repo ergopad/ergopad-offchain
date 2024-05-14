@@ -40,7 +40,7 @@ class VestingState:
         return hexVal
 
     def addProxyBox(self, proxyBox) -> bool:
-        mempool = "includsionHeight" not in proxyBox
+        mempool = "inclusionHeight" not in proxyBox
         if not mempool:
             if proxyBox["assets"][0]["tokenId"] in self._proxyBoxes:
                 if proxyBox["inclusionHeight"] <= self._proxyBoxes[proxyBox["assets"][0]["tokenId"]]["inclusionHeight"]:
